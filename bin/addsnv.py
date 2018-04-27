@@ -164,7 +164,9 @@ def makemut(args, hc, avoid, alignopts):
         readlist = []
         for extqname,read in outreads.iteritems():
             if read.seq != mutreads[extqname]:
-                readlist.append(extqname)
+                #If linked-read mode (10X Genomics), only make mutation on reads assigned to HP=1 by Longranger
+                if not args.linkedread or read.has_tag("HP") and read.get_tag("HP") == 1: 
+                    readlist.append(extqname)
 
         print "INFO\t" + now() + "\t" + hapstr + "\tlen(readlist): " + str(len(readlist))
         readlist.sort()
@@ -507,6 +509,8 @@ def run():
     parser.add_argument('--alignopts', default=None, help='aligner-specific options as comma delimited list of option1:value1,option2:value2,...')
     parser.add_argument('--tmpdir', default='addsnv.tmp', help='temporary directory (default=addsnv.tmp)')
     parser.add_argument('--seed', default=None, help='seed random number generation')
+    parser.add_argument('--linkedread', action='store_true', default=False, help='in 10X Genomics (Chromium), make mutation on HP=1 reads only')
+
     args = parser.parse_args()
     main(args)
 

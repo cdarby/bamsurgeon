@@ -17,6 +17,8 @@ def cleanup(read,orig,RG):
     fixes unmapped reads that are marked as 'reverse'
     fill in read group at random from existing RGs if 
     RG tags are present in .bam header 
+    Retain 10X-based tags from original BAM record, including Lariat linked-read alignment tags
+    (see https://support.10xgenomics.com/genome-exome/software/pipelines/latest/output/bam)
     '''
 
     if read.is_unmapped and read.is_reverse:
@@ -47,6 +49,14 @@ def cleanup(read,orig,RG):
             # give up and add random read group from list in header (e.g. for simulated reads)
             newRG = RG[random.randint(0,len(RG)-1)]
             read.tags = read.tags + [("RG",newRG)]
+    
+    tenxTags = [("BX","Z"),("BC","Z"),("QT","Z"),("RX","Z"),("QX","Z"),("TR","Z"),("TQ","Z"),("PC","i"),("PS","i"),("HP","i"),("MI","i"),("AS","i"),("XS","i"),("AM","A"),("XM","A"),("XT","i")]
+    for (t,dtype) in tenxTags:
+    try:
+        tagval = orig.get_tag(t)
+        read.set_tag(t,tagval,value_type=dtype)
+    except KeyError:
+            continue
     return read
 
 def getRGs(bam):
