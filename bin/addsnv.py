@@ -165,7 +165,12 @@ def makemut(args, hc, avoid, alignopts):
         for extqname,read in outreads.iteritems():
             if read.seq != mutreads[extqname]:
                 #If linked-read mode (10X Genomics), only make mutation on reads assigned to HP=1 by Longranger
-                if not args.linkedread or read.has_tag("HP") and read.get_tag("HP") == 1: 
+                #or randomly selected half of the reads without an HP tag
+                if not args.linkedread:
+                    readlist.append(extqname)
+                elif args.linkedread and read.has_tag("HP") and read.get_tag("HP") == 1:
+                    readlist.append(extqname)
+                elif args.linkedread and not read.has_tag("HP") and random.random() < 0.5:
                     readlist.append(extqname)
 
         print "INFO\t" + now() + "\t" + hapstr + "\tlen(readlist): " + str(len(readlist))
